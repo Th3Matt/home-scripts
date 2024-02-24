@@ -1,0 +1,48 @@
+#!/bin/sh
+
+export AccentColorConfigDir=$XDG_CONFIG_HOME/AccentColor
+
+if [ ! -d $AccentColorConfigDir ]; then
+  mkdir -p $AccentColorConfigDir
+fi
+
+export CurrentAccentFile=$AccentColorConfigDir"/currentAccent"
+export EWWAccentFile=$XDG_CONFIG_HOME/eww/MBar2/accent-color.scss
+export HyprlandFile=$XDG_CONFIG_HOME/hypr/hyprland.conf
+export CursorThemeFile=~/.icons/default/index.theme
+export WofiFile=$XDG_CONFIG_HOME/wofi/style.css
+export SwaylockFile=$XDG_CONFIG_HOME/swaylock/config
+
+if [ ! -f $CurrentAccentFile ]; then
+  echo hot > $CurrentAccentFile
+else
+  if [ $(cat $CurrentAccentFile) = "hot" ]; then
+    echo "cold" > $CurrentAccentFile
+  elif [ $(cat $CurrentAccentFile) = "cold" ]; then
+    echo "hot" > $CurrentAccentFile
+  fi
+fi
+
+pkill eww
+
+if [ $(cat $CurrentAccentFile) = "hot" ]; then
+  sed -i "s/blue/orange/" $EWWAccentFile
+  sed -i -e 's/$blue/$orange/g' -e 's/cyan/yellow/g' -e 's/blue/red/g' $ZSH/prompt.zsh
+  sed -i -e 's/col.active_border = $coldAccent/col.active_border = $warmAccent/g' -e 's/Qogir-Recolored-Dracula-Teddy/Qogir-Recolored-Dracula-Orange/g' $HyprlandFile
+  sed -i -e 's/#5566bb/#ff8800/' $WofiFile
+  gsettings set org.gnome.desktop.interface cursor-theme Qogir-Recolored-Dracula-Orange 
+  kwriteconfig5 --group Mouse --key cursorTheme Qogir-Recolored-Dracula-Orange
+  swww init
+  sed -i -e 's/5566bbff/ff8800ff/' -e 's/00ffffff/ffff00ff/' -e 's/008888ff/888800ff/' $SwaylockFile
+elif [ $(cat $CurrentAccentFile) = "cold" ]; then
+  sed -i "s/orange/blue/" $EWWAccentFile 
+  sed -i -e 's/$orange/$blue/g' -e 's/yellow/cyan/g' -e 's/red/blue/g' $ZSH/prompt.zsh
+  sed -i -e 's/col.active_border = $warmAccent/col.active_border = $coldAccent/g' -e 's/Qogir-Recolored-Dracula-Orange/Qogir-Recolored-Dracula-Teddy/g' $HyprlandFile
+  sed -i -e 's/#ff8800/#5566bb/' $WofiFile
+  gsettings set org.gnome.desktop.interface cursor-theme Qogir-Recolored-Dracula-Teddy
+  kwriteconfig5 --group Mouse --key cursorTheme Qogir-Recolored-Dracula-Teddy
+  pkill swww
+  sed -i -e 's/ff8800ff/5566bbff/' -e 's/ffff00ff/00ffffff/' -e 's/888800ff/008888ff/' $SwaylockFile
+fi
+
+source $ZSH/prompt.zsh

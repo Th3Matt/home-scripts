@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for file in */
+do
+    env XZ_OPT='-9' tar -cvJf "${file::-1}".tar.xz "$file"
+done
