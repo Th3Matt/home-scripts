@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+export tmpfile=$(mktemp)
+export ownerid=$(stat $1 | grep -Pzo "Uid: \( *\d+\/ *[a-zA-Z0-9]+\)" | grep -Pzo "[^/^ ]+\)" | grep -Pzo "[^\)]+")
+doas cp $1 $tmpfile
+
+echo $tmpfile
+
+export userid=$(id | grep -Pzo "uid=\d+\([a-zA-Z][a-zA-Z0-9]+\)" | grep -Pzo "[^\(]+\)" | grep -Pzo "[^\)]+")
+doas chown $userid $tmpfile
+$EDITOR $tmpfile
+
+doas cp $tmpfile $1
+doas chown $ownerid $1
+
+rm $tmpfile
